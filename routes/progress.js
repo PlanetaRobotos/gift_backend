@@ -40,7 +40,7 @@ router.post('/update', (req, res) => {
     return res.status(400).send("Missing puzzle_id or is_solved parameter");
   }
 
-  bot.sendMessage(notifyUserId, 'Response: {}')
+  bot.sendMessage(notifyUserId, 'Response')
 
   // Insert or update the puzzle progress in the database
   db.run(
