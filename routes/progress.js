@@ -20,7 +20,9 @@ bot.on('message', (msg) => {
 
 router.get('/status', async (req, res) => {
   try {
+    console.log("get status init");
     const db = await connectToDatabase();
+    console.log("get status connected");
     const collection = db.collection('GiftCollection');
 
     const progressData = await collection.find({}).toArray();
