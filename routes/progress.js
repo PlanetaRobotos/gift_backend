@@ -113,8 +113,8 @@ router.get('/prize', async (req, res, next) => {
 // Lock all puzzles: reset to initial state
 router.post('/lock-all', async (req, res, next) => {
   try {
-    await puzzleService.lockAllPuzzles();  // Call the service to lock all puzzles
     botService.sendMessage("All puzzles have been locked and reset to the initial state.");
+    await puzzleService.lockAllPuzzles();  // Call the service to lock all puzzles
     logger.info("All puzzles have been locked.");
     res.send("All puzzles have been successfully locked.");
   } catch (err) {
