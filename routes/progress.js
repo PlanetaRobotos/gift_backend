@@ -4,6 +4,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const router = express.Router();
+const connectToDatabase = require('../database');
 
 // Connect to SQLite database
 const db = new sqlite3.Database('./data/graffitiQuiz.db');
@@ -21,40 +22,45 @@ bot.on('message', (msg) => {
   bot.sendMessage(chatId, `You said: "${userMessage}". Try sending /ping for a surprise!`);
 });
 
-router.get('/status', (req, res) => {
-  db.all("SELECT * FROM progress", [], (err, rows) => {
-    if (err) {
-      return res.status(500).send("Error retrieving progress data");
-    }
-    res.json(rows);
-  });
+router.get('/status', async (req, res) => {
+  try {
+    const db = await connectToDatabase();
+    const collection = db.collection('GiftCollection');
+
+    const progressData = await collection.find({}).toArray();
+    res.json(progressData);
+  } catch (error) {
+    console.error("Database error:", error.message);
+    res.status(500).send("Failed to retrieve progress data");
+  }
 });
 
-router.post('/update', (req, res) => {
+router.post('/update', async (req, res) => {
   console.log("Request Body:", req);
 
   const { puzzle_id, is_solved } = req.body;
 
-  // Check if puzzle_id and is_solved are provided
   if (!puzzle_id || is_solved === undefined) {
     return res.status(400).send("Missing puzzle_id or is_solved parameter");
   }
 
   bot.sendMessage(notifyUserId, 'Response')
 
-  // Insert or update the puzzle progress in the database
-  db.run(
-    `INSERT INTO progress (puzzle_id, is_solved) VALUES (?, ?)
-     ON CONFLICT(puzzle_id) DO UPDATE SET is_solved = excluded.is_solved, last_updated = CURRENT_TIMESTAMP`,
-    [puzzle_id, is_solved],
-    function (err) {
-      if (err) {
-        console.error("Database error:", err.message);
-        return res.status(500).send("Failed to update progress");
-      }
-      res.send("Progress updated successfully");
-    }
-  );
+  try {
+    const db = await connectToDatabase();
+    const collection = db.collection('GiftCollection');
+
+    await collection.updateOne(
+      { puzzle_id: puzzle_id },
+      { $set: { is_solved: is_solved, last_updated: new Date() } },
+      { upsert: true }
+    );
+
+    res.send("Progress updated successfully");
+  } catch (error) {
+    console.error("Database error:", error.message);
+    res.status(500).send("Failed to update progress");
+  }
 });
 
 module.exports = router;
