@@ -1,16 +1,16 @@
-const { MongoClient } = require('mongodb');
+import { MongoClient } from 'mongodb';
 
-const uri = process.env.MONGODB_URI || 'mongodb+srv://mirskiyp2002:zpuOpITjjkbVV49o@cluster0.y4hol.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
-
-let db;
+const uri = process.env.MONGODB_URI;
+let cachedDb = null;
 
 async function connectToDatabase() {
-  if (db) return db; // reuse existing connection
+  if (cachedDb) return cachedDb;
 
-  const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+  const client = new MongoClient(uri);
   await client.connect();
-  db = client.db('GiftDatabase'); // Replace 'myDatabase' with your desired database name
-  return db;
+  console.log("Connected to MongoDB");
+  cachedDb = client.db('GiftDatabase');
+  return cachedDb;
 }
 
-module.exports = connectToDatabase;
+export default connectToDatabase;
