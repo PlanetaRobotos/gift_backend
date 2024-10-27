@@ -99,7 +99,7 @@ router.post('/prize', async (req, res, next) => {
 
       const prize = {
         message: "Congratulations! You unlocked the prize.",
-        url: 'https://www.youtube.com/watch?v=Wmyn8_fKoes&ab_channel=%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%D0%A8%D0%B5%D0%B2%D1%86%D0%BE%D0%B2'
+        url: 'https://drive.google.com/file/d/1SPn7mP8DslMoP0kPBFUAxqqrM4IlyqIE/view?usp=sharing'
       };
 
       return res.json(prize);
