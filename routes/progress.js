@@ -61,4 +61,19 @@ router.post('/update', async (req, res) => {
   }
 });
 
+router.post('/lock-all', async (req, res) => {
+  try {
+    const db = await connectToDatabase();
+    const collection = db.collection('GiftCollection');
+
+    // Update all puzzles to set is_solved to false
+    await collection.updateMany({}, { $set: { is_solved: false } });
+
+    res.send("All puzzles have been locked.");
+  } catch (error) {
+    console.error("Error locking all puzzles:", error);
+    res.status(500).send("Failed to lock all puzzles.");
+  }
+});
+
 module.exports = router;
