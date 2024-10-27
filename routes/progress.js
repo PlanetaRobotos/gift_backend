@@ -34,8 +34,8 @@ router.post('/puzzles/solve-riddle', async (req, res, next) => {
       return res.status(403).send(`Incorrect answer for puzzle "${puzzle_id}".`);
     }
 
-    await puzzleService.solveRiddle(puzzle_id);
     botService.sendMessage(`Puzzle "${puzzle_id}" unlocked! You can now see the instructions for finding the graffiti.`);
+    await puzzleService.solveRiddle(puzzle_id);
     logger.info(`Puzzle "${puzzle_id}" unlocked`);
     res.send("Puzzle unlocked!");
   } catch (err) {
@@ -52,8 +52,8 @@ router.post('/puzzles/mark-found', async (req, res, next) => {
   }
 
   try {
-    await puzzleService.markAsFound(req.body.puzzle_id);
     botService.sendMessage(`Puzzle "${req.body.puzzle_id}" marked as found!`);
+    await puzzleService.markAsFound(req.body.puzzle_id);
     logger.info(`Puzzle "${req.body.puzzle_id}" marked as found`);
     res.send("Puzzle marked as found!");
   } catch (err) {
