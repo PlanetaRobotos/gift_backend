@@ -64,24 +64,35 @@ router.post('/puzzles/mark-found', async (req, res, next) => {
 // GET /puzzles/final - Fetch final puzzle after all are found
 router.get('/puzzles/final', async (req, res, next) => {
   try {
+    // Fetch all puzzles to check if all initial ones are found
     const allPuzzles = await puzzleService.getPuzzles();
     const allFound = allPuzzles.every(puzzle => puzzle.is_found);
 
     if (!allFound) {
+      // Send feedback through bot and response if not all puzzles are found
       botService.sendMessage("All puzzles are not completed yet. Complete all puzzles to access the final puzzle.");
-      return res.status(403).send("Complete all initial puzzles to access the final puzzle.");
+      logger.info("Attempted access to final puzzle before all puzzles were completed");
+      return res.status(403).json({
+        message: "Complete all initial puzzles to access the final puzzle.",
+        requiredPuzzles: allPuzzles.filter(puzzle => !puzzle.is_found).map(puzzle => puzzle.puzzle_id)
+      });
     }
 
+    // All puzzles are found, fetch the final puzzle from the database
     botService.sendMessage("All puzzles are completed! The final puzzle is now available.");
     logger.info("Final puzzle is available");
 
-    const finalPuzzle = {
-      puzzle_id: "final",
-      hint: "Combine all elements you've found to locate the final graffiti.",
-      is_unlocked: true
-    };
+    const finalPuzzle = await puzzleService.getPuzzleById("final"); // Assuming `getPuzzleById` accepts `puzzle_id`
 
-    res.json(finalPuzzle);
+    if (!finalPuzzle) {
+      return res.status(404).json({ message: "Final puzzle not found." });
+    }
+
+    // Return the final puzzle with an indication that it’s unlocked
+    res.json({
+      ...finalPuzzle,
+      is_unlocked: true // Set is_unlocked to true to show that it’s accessible now
+    });
   } catch (err) {
     next(err);
   }

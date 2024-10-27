@@ -4,7 +4,7 @@ const { GIFT_COLLECTION } = require('../config');
 
 const getPuzzles = async () => {
   const db = await connectToDatabase();
-  return db.collection(GIFT_COLLECTION).find({}).toArray();
+  return db.collection(GIFT_COLLECTION).find({ puzzle_id: { $ne: "final" } }).toArray();
 };
 
 const getPuzzleById = async (puzzle_id) => {
