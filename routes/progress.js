@@ -24,10 +24,21 @@ router.post('/puzzles/solve-riddle', async (req, res, next) => {
     return res.status(400).send(error.details[0].message);
   }
 
+  const { puzzle_id, answer } = req.body;
+
   try {
-    await puzzleService.solveRiddle(req.body.puzzle_id);
-    botService.sendMessage(`Puzzle "${req.body.puzzle_id}" unlocked! You can now see the instructions for finding the graffiti.`);
-    logger.info(`Puzzle "${req.body.puzzle_id}" unlocked`);
+    const puzzle = await puzzleService.getPuzzleById(puzzle_id);
+
+    // Check if the provided answer matches the correct answer
+    if (puzzle.correct_answer.toLowerCase() !== answer.toLowerCase()) {
+      // If the answer is incorrect, return a 403 error
+      return res.status(403).send("Incorrect answer. Try again!");
+    }
+
+    // If the answer is correct, unlock the puzzle
+    await puzzleService.solveRiddle(puzzle_id);
+    botService.sendMessage(`Puzzle "${puzzle_id}" unlocked! You can now see the instructions for finding the graffiti.`);
+    logger.info(`Puzzle "${puzzle_id}" unlocked`);
     res.send("Puzzle unlocked!");
   } catch (err) {
     next(err);
