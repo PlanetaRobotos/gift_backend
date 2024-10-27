@@ -61,61 +61,52 @@ router.post('/puzzles/mark-found', async (req, res, next) => {
   }
 });
 
-// GET /puzzles/final - Fetch final puzzle after all are found
+// GET /puzzles/final - Fetch final puzzle instructions after all are found
 router.get('/puzzles/final', async (req, res, next) => {
   try {
-    // Fetch all puzzles to check if all initial ones are found
     const allPuzzles = await puzzleService.getPuzzles();
     const allFound = allPuzzles.every(puzzle => puzzle.is_found);
 
     if (!allFound) {
-      // Send feedback through bot and response if not all puzzles are found
-      botService.sendMessage("All puzzles are not completed yet. Complete all puzzles to access the final puzzle.");
-      logger.info("Attempted access to final puzzle before all puzzles were completed");
-      return res.status(403).json({
-        message: "Complete all initial puzzles to access the final puzzle.",
-        requiredPuzzles: allPuzzles.filter(puzzle => !puzzle.is_found).map(puzzle => puzzle.puzzle_id)
-      });
+      botService.sendMessage("All puzzles are not completed yet. Complete all puzzles to access the final instructions.");
+      return res.status(403).send("Complete all initial puzzles to access the final instructions.");
     }
 
-    // All puzzles are found, fetch the final puzzle from the database
-    botService.sendMessage("All puzzles are completed! The final puzzle is now available.");
-    logger.info("Final puzzle is available");
+    botService.sendMessage("All puzzles are completed! Final instructions are now available.");
+    logger.info("Final instructions are available");
 
-    const finalPuzzle = await puzzleService.getPuzzleById("final"); // Assuming `getPuzzleById` accepts `puzzle_id`
+    const finalInstructions = {
+      puzzle_id: "final",
+      hint: "To access your prize, enter the final password.",
+      is_unlocked: true
+    };
 
-    if (!finalPuzzle) {
-      return res.status(404).json({ message: "Final puzzle not found." });
-    }
-
-    // Return the final puzzle with an indication that it’s unlocked
-    res.json({
-      ...finalPuzzle,
-      is_unlocked: true // Set is_unlocked to true to show that it’s accessible now
-    });
+    res.json(finalInstructions);
   } catch (err) {
     next(err);
   }
 });
 
-// GET /prize - Access the final prize (song)
-router.get('/prize', async (req, res, next) => {
+// POST /prize - Check final password and provide prize access
+router.post('/prize', async (req, res, next) => {
   try {
-    const finalPuzzle = await puzzleService.getFinalPuzzle();
-    if (!finalPuzzle || !finalPuzzle.is_solved) {
-      botService.sendMessage("Final puzzle is not solved yet. Solve the final puzzle to access the prize.");
-      return res.status(403).send("Complete the final puzzle to access the prize.");
+    const { answer } = req.body;
+    const finalPuzzle = await puzzleService.getPuzzleById("final");
+
+    if (finalPuzzle.correct_answer === answer) {
+      botService.sendMessage("Correct password entered! Prize is unlocked.");
+      logger.info("Prize unlocked");
+
+      const prize = {
+        message: "Congratulations! You unlocked the prize.",
+        url: 'https://www.youtube.com/watch?v=Wmyn8_fKoes&ab_channel=%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%D0%A8%D0%B5%D0%B2%D1%86%D0%BE%D0%B2'
+      };
+
+      return res.json(prize);
+    } else {
+      botService.sendMessage("Incorrect password attempt for prize.");
+      return res.status(403).send("Incorrect password.");
     }
-
-    botService.sendMessage("Congratulations! You've completed all puzzles. Here’s your prize!");
-    logger.info("Prize accessed");
-
-    const prize = {
-      url: "https://path-to-your-song-file.com/your-song.mp3",
-      message: "Congratulations! Here is your prize."
-    };
-
-    res.json(prize);
   } catch (err) {
     next(err);
   }
