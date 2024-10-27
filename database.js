@@ -1,6 +1,6 @@
 const { MongoClient } = require('mongodb');
 
-const { MONGODB_URI, GIFT_COLLECTION } = require('./config');
+const { MONGODB_URI, GIFT_DATABASE } = require('./config');
 
 let cachedDb = null;
 
@@ -10,7 +10,7 @@ async function connectToDatabase() {
   const client = new MongoClient(MONGODB_URI);
   await client.connect();
   console.log("Connected to MongoDB");
-  cachedDb = client.db(GIFT_COLLECTION);
+  cachedDb = client.db(GIFT_DATABASE);
   return cachedDb;
 }
 
