@@ -27,10 +27,20 @@ const getFinalPuzzle = async () => {
   return db.collection(GIFT_COLLECTION).findOne({ puzzle_id: "final" });
 };
 
+// Lock all puzzles by setting is_unlocked and is_found to false
+const lockAllPuzzles = async () => {
+  const db = await connectToDatabase();
+  await db.collection(GIFT_COLLECTION).updateMany(
+    {},
+    { $set: { is_unlocked: false, is_found: false } }
+  );
+};
+
 module.exports = {
   getPuzzles,
   solveRiddle,
   markAsFound,
   getFinalPuzzle,
-  getPuzzleById
+  getPuzzleById,
+  lockAllPuzzles
 };
