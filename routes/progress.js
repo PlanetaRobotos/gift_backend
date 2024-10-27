@@ -29,13 +29,11 @@ router.post('/puzzles/solve-riddle', async (req, res, next) => {
   try {
     const puzzle = await puzzleService.getPuzzleById(puzzle_id);
 
-    // Check if the provided answer matches the correct answer
     if (puzzle.correct_answer.toLowerCase() !== answer.toLowerCase()) {
-      // If the answer is incorrect, return a 403 error
-      return res.status(403).send("Incorrect answer. Try again!");
+      botService.sendMessage(`Puzzle "${puzzle_id}" riddle was attempted but failed.`);
+      return res.status(403).send(`Incorrect answer for puzzle "${puzzle_id}".`);
     }
 
-    // If the answer is correct, unlock the puzzle
     await puzzleService.solveRiddle(puzzle_id);
     botService.sendMessage(`Puzzle "${puzzle_id}" unlocked! You can now see the instructions for finding the graffiti.`);
     logger.info(`Puzzle "${puzzle_id}" unlocked`);
@@ -49,6 +47,7 @@ router.post('/puzzles/solve-riddle', async (req, res, next) => {
 router.post('/puzzles/mark-found', async (req, res, next) => {
   const { error } = markFoundSchema.validate(req.body);
   if (error) {
+    botService.sendMessage(`An error occurred while marking a puzzle as found: ${error.details[0].message}`);
     return res.status(400).send(error.details[0].message);
   }
 
@@ -69,6 +68,7 @@ router.get('/puzzles/final', async (req, res, next) => {
     const allFound = allPuzzles.every(puzzle => puzzle.is_found);
 
     if (!allFound) {
+      botService.sendMessage("All puzzles are not completed yet. Complete all puzzles to access the final puzzle.");
       return res.status(403).send("Complete all initial puzzles to access the final puzzle.");
     }
 
@@ -92,6 +92,7 @@ router.get('/prize', async (req, res, next) => {
   try {
     const finalPuzzle = await puzzleService.getFinalPuzzle();
     if (!finalPuzzle || !finalPuzzle.is_solved) {
+      botService.sendMessage("Final puzzle is not solved yet. Solve the final puzzle to access the prize.");
       return res.status(403).send("Complete the final puzzle to access the prize.");
     }
 
