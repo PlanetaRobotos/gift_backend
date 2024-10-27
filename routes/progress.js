@@ -2,12 +2,8 @@
 
 const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
 const router = express.Router();
 const connectToDatabase = require('../database');
-
-// Connect to SQLite database
-const db = new sqlite3.Database('./data/graffitiQuiz.db');
 
 const token = '7736822280:AAEd62KQK5F4bS-U5E5wj1J2mqxVfrd205w';
 const bot = new TelegramBot(token, { polling: true });
