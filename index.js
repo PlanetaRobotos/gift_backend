@@ -1,22 +1,13 @@
+// index.js
 const express = require('express');
-const cors = require('cors');
 const app = express();
-const port = 3000;
 const progressRoutes = require('./routes/progress');
+const errorHandler = require('./middlewares/errorHandler');
 
 app.use(cors());
-app.use(express.json());
-app.use('/progress', progressRoutes);
+app.use(express.json()); // for parsing application/json
+app.use('/progress', progressRoutes); // Load routes
+app.use(errorHandler); // Error handling middleware
 
-app.get('/', (req, res) => {
-  res.send('Welcome to the Graffiti Quiz API');
-});
-
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
-});
-
-app.post('/test', (req, res) => {
-  console.log("Test Request Body:", req.body);
-  res.send("Testing JSON Middleware");
-});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
