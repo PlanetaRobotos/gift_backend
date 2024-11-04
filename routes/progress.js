@@ -77,7 +77,7 @@ router.get('/puzzles/final', async (req, res, next) => {
 
     const finalInstructions = {
       puzzle_id: "final",
-      hint: "To access your prize, enter the final password.",
+      hint: "To access your prize, enter the final password. (напиши мені, якщо не знаєш пароль 😉)",
       is_unlocked: true
     };
 
